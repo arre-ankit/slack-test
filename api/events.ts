@@ -7,6 +7,7 @@ import {assistantThreadMessageChai, handleNewAssistantMessageChai} from '../lib/
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const payload = JSON.parse(rawBody);
+  console.log(payload);
   const requestType = payload.type as "url_verification" | "event_callback";
 
   // See https://api.slack.com/events/url_verification
