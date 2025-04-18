@@ -6,6 +6,18 @@ export const generateResponseLangBase = async (
   messages: any[],
   updateStatus?: (status: string) => void,
 ) => {
+	await langbase.pipes.create({
+		name: 'support-agent',
+		description: 'A support agent that can help with customer inquiries',
+		upsert: true,
+		messages:[
+			{
+				role: 'system',
+				content: 'You are a helpful assistant'
+			}
+		]
+
+	})
 	
 	const response = await langbase.pipes.run({
 		name: 'support-agent',
