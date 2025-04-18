@@ -1,38 +1,36 @@
 import type { AssistantThreadStartedEvent, GenericMessageEvent } from "@slack/web-api";
 import { client, getThreadLangBase, updateStatusUtil } from "./slack-utils";
-import { generateResponseLangBase } from "./generate-response-langbase";
+import { generateResponseLangBase } from "./langbase-pipe-agent";
   
 export async function assistantThreadMessageChai(event: AssistantThreadStartedEvent) {
-const { channel_id, thread_ts } = event.assistant_thread;
-	console.log(`Thread started: ${channel_id} ${thread_ts}`);
-	console.log(JSON.stringify(event));
+	const { channel_id, thread_ts } = event.assistant_thread;
 	
 	await client.chat.postMessage({
 		channel: channel_id,
 		thread_ts: thread_ts,
-		text: "Hello, I'm an Chai Agent!"
+		text: "Hello, I'm an your Chai Agent!"
     });
   
 }
   
-export async function handleNewAssistantMessageChai(
+export async function assistantMessageChai(
 	event: GenericMessageEvent,
 	botUserId: string,
   ) {
-	if (
-		event.bot_id ||
-		event.bot_id === botUserId ||
-		event.bot_profile ||
-		!event.thread_ts
-    )
+	
+	const shouldSkipResponse = event.bot_id || event.bot_id === botUserId || event.bot_profile || !event.thread_ts
+	if (shouldSkipResponse)
     return;
+
+	if (!event.thread_ts)
+		return;
+	
   
 	const { thread_ts, channel } = event;
 	const updateStatus = updateStatusUtil(channel, thread_ts);
-	updateStatus("is thinking...");
+	updateStatus("is running...");
 
 	const messages = await getThreadLangBase(channel, thread_ts, botUserId);
-	console.log(messages);
     const result = await generateResponseLangBase(messages, updateStatus);
   
     await client.chat.postMessage({

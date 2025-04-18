@@ -1,10 +1,10 @@
-import { langbase } from "./utils";
-import { Message } from "langbase";
+'use server'
 
+import { langbase } from "./utils";
 
 export const generateResponseLangBase = async (
-  messages: any[],
-  updateStatus?: (status: string) => void,
+  	messages: any[],
+  	updateStatus?: (status: string) => void,
 ) => {
 	await langbase.pipes.create({
 		name: 'support-agent',

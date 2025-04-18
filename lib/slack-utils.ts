@@ -1,5 +1,6 @@
+'use server'
+
 import { WebClient } from '@slack/web-api';
-import { CoreMessage } from 'ai'
 import crypto from 'crypto'
 import { Message } from 'langbase';
 
@@ -9,40 +10,42 @@ export const client = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 // See https://api.slack.com/authentication/verifying-requests-from-slack
 export async function isValidSlackRequest({
-  request,
-  rawBody,
+	request,
+	rawBody
 }: {
-  request: Request
-  rawBody: string
+	request: Request,
+	rawBody: string
 }) {
-  // console.log('Validating Slack request')
-  const timestamp = request.headers.get('X-Slack-Request-Timestamp')
-  const slackSignature = request.headers.get('X-Slack-Signature')
-  // console.log(timestamp, slackSignature)
+	// console.log('Validating Slack request')
+	const timestamp = request.headers.get('X-Slack-Request-Timestamp')
+	const slackSignature = request.headers.get('X-Slack-Signature')
 
-  if (!timestamp || !slackSignature) {
-    console.log('Missing timestamp or signature')
-    return false
-  }
+	if (!timestamp || !slackSignature) {
+		console.log('Missing timestamp or signature')
+		return false
+	}
 
-  // Prevent replay attacks on the order of 5 minutes
-  if (Math.abs(Date.now() / 1000 - parseInt(timestamp)) > 60 * 5) {
-    console.log('Timestamp out of range')
-    return false
-  }
+	// Prevent replay attacks on the order of 5 minutes
+	const currentTime = Math.floor(Date.now() / 1000)
+	const timeDiff = Math.abs(currentTime - parseInt(timestamp))
+	const isTimeMoreThanFiveMinutes = timeDiff > 60 * 5
+	if (isTimeMoreThanFiveMinutes) {
+		console.log('Timestamp out of range')
+		return false
+	}
 
-  const base = `v0:${timestamp}:${rawBody}`
-  const hmac = crypto
-    .createHmac('sha256', signingSecret)
-    .update(base)
-    .digest('hex')
-  const computedSignature = `v0=${hmac}`
+	const base = `v0:${timestamp}:${rawBody}`
+	const hmac = crypto
+		.createHmac('sha256', signingSecret)
+		.update(base)
+		.digest('hex')
+  	const computedSignature = `v0=${hmac}`
 
-  // Prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(computedSignature),
-    Buffer.from(slackSignature)
-  )
+	// Prevent timing attacks
+	return crypto.timingSafeEqual(
+		Buffer.from(computedSignature),
+		Buffer.from(slackSignature)
+	)
 }
 
 export const verifyRequest = async ({
@@ -74,7 +77,7 @@ export async function getThread(
   channel_id: string,
   thread_ts: string,
   botUserId: string,
-): Promise<CoreMessage[]> {
+): Promise<Message[]> {
   const { messages } = await client.conversations.replies({
     channel: channel_id,
     ts: thread_ts,
@@ -100,9 +103,9 @@ export async function getThread(
       return {
         role: isBot ? "assistant" : "user",
         content: content,
-      } as CoreMessage;
+      } as Message;
     })
-    .filter((msg): msg is CoreMessage => msg !== null);
+    .filter((msg): msg is Message => msg !== null);
 
   return result;
 }
