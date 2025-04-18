@@ -40,6 +40,7 @@ export async function handleNewAppMentionLangBase(
 
   if (thread_ts) {
     const messages = await getThreadLangBase(channel, thread_ts, botUserId);
+    console.log(messages);
     const result = await generateResponseLangBase(messages, updateMessage);
     updateMessage(result);
   } else {

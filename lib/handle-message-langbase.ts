@@ -42,6 +42,7 @@ export async function handleNewAssistantMessageLangbase(
 	updateStatus("is thinking...");
 
 	const messages = await getThreadLangBase(channel, thread_ts, botUserId);
+	console.log(messages);
     const result = await generateResponseLangBase(messages, updateStatus);
   
     await client.chat.postMessage({
