@@ -10,19 +10,9 @@ const { channel_id, thread_ts } = event.assistant_thread;
 	await client.chat.postMessage({
 		channel: channel_id,
 		thread_ts: thread_ts,
-		text: "Hello, I'm an AI assistant built with the LangBase!",
+		text: "Hello, I'm an Chai Agent!"
     });
   
-	await client.assistant.threads.setSuggestedPrompts({
-		channel_id: channel_id,
-		thread_ts: thread_ts,
-		prompts: [
-			{
-				title: "Get the weather",
-				message: "What is the current weather in London?",
-			},
-		],
-	});
 }
   
 export async function handleNewAssistantMessageChai(
