@@ -1,3 +1,4 @@
+'use server'
 import { Langbase } from "langbase";
 
 export const langbase = new Langbase({

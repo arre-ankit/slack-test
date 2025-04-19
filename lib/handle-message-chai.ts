@@ -1,3 +1,5 @@
+'use server'
+
 import type { AssistantThreadStartedEvent, GenericMessageEvent } from "@slack/web-api";
 import { client, getThreadLangBase, updateStatusUtil } from "./slack-utils";
 import { generateResponseLangBase } from "./langbase-pipe-agent";
@@ -24,7 +26,7 @@ export async function assistantMessageChai(
 
 	if (!event.thread_ts)
 		return;
-	
+
   
 	const { thread_ts, channel } = event;
 	const updateStatus = updateStatusUtil(channel, thread_ts);

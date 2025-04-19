@@ -1,3 +1,5 @@
+'use server'
+
 import { AppMentionEvent } from "@slack/web-api";
 import { client, getThreadLangBase, getChannelMessages } from "./slack-utils";
 import { generateResponseLangBase } from "./langbase-pipe-agent";
@@ -12,7 +14,8 @@ const updateStatusUtil = async (
         text: initialStatus,
     });
 
-    if (!initialMessage || !initialMessage.ts)
+    const isInitialMessageFailed = !initialMessage || !initialMessage.ts;
+    if (isInitialMessageFailed)
         throw new Error("Failed to post initial message");
 
     const updateMessage = async (status: string) => {
@@ -29,7 +32,8 @@ export async function appMentionChai(
     event: AppMentionEvent,
     botUserId: string,
 ) {
-    if (event.bot_id || event.bot_id === botUserId || event.bot_profile) {
+    const isBotNotMentioned = event.bot_id || event.bot_id === botUserId || event.bot_profile;
+    if (isBotNotMentioned) {
         console.log("Skipping app mention");
         return;
     }
@@ -44,10 +48,13 @@ export async function appMentionChai(
     } 
     else {
         const channelMessages = await getChannelMessages(channel);
-        const result = await generateResponseLangBase(
-            [{ role: "user", content: `Here are the messages in the channel messages: ${JSON.stringify(channelMessages)}`}],
-            updateMessage,
-        );
+        if (!channelMessages) {
+            await updateMessage("Give some context to the agent");
+            return;
+        }
+        const content = channelMessages.map(msg => msg.text).join("\n");
+        const result = await generateResponseLangBase([{role: "user", content: content}], updateMessage);       // const result = await chaiAgent(content);
+        
         await updateMessage(result);
     }
 }

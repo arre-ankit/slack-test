@@ -5,17 +5,19 @@ import { appMentionChai } from '../lib/app-mention-chai'
 import {assistantThreadMessageChai, assistantMessageChai} from '../lib/handle-message-chai'
 
 export async function POST(request: Request) {
-	const rawBody = await request.text();
-  	const payload = JSON.parse(rawBody);
+	const rawBody = await request.json();
+  	const payload = rawBody;
   	const requestType = payload.type as "url_verification" | "event_callback";
 
-	// See https://api.slack.com/events/url_verification
-	if (requestType === "url_verification") {
+	const isRequestTypeUrlVerification = requestType === "url_verification";
+	if (isRequestTypeUrlVerification) {
 		return new Response(payload.challenge, { status: 200 });
 	}
 
-  	await verifyRequest({ requestType, request, rawBody });
-
+  	const isRequestVerified = await verifyRequest({ requestType, request, rawBody });
+	if (!isRequestVerified) {
+		return new Response("Unauthorized", { status: 401 });
+	}
 
 	try {
 		const botUserId = await getBotId();

@@ -58,7 +58,8 @@ export const verifyRequest = async ({
   rawBody: string;
 }) => {
   const validRequest = await isValidSlackRequest({ request, rawBody });
-  if (!validRequest || requestType !== "event_callback") {
+  const isReqNotValid = !validRequest || requestType !== "event_callback";
+  if (isReqNotValid) {
     return new Response("Invalid request", { status: 400 });
   }
 };
